@@ -27,9 +27,21 @@ public:
 		return m_upDown;
 	}
 
+	inline float					GetWASDUpDown() const
+	{
+		return m_wasdupDown;
+	}
+
+	inline float					GetWASDLeftRight() const
+	{
+		return m_wasdleftRight;
+	}
+
 private:
 	float							m_leftRight;
-	float							m_upDown;
+	float							m_upDown;	
+	float							m_wasdleftRight;
+	float							m_wasdupDown;
 };
 
 } // namespace DX

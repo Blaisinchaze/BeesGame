@@ -3,6 +3,7 @@
 #include "Core.h"
 #include "Flower.h"
 #include "..\EntityHelper.h"
+#include "Utils\Maths.h"
 
 namespace scene
 {
@@ -14,6 +15,8 @@ namespace scene
 		m_nectarGainRate = 10.0f;
 		m_nectarStored = 0.0f;
 		m_maxNectarStored = 50.0f;
+		m_insideColour = { 0.0f,0.0f ,0.0f ,0.0f };
+		m_outsideColour = { 0.0f,0.0f ,0.0f ,0.0f };
 	}
 
 	void Flower::Initialise()
@@ -28,21 +31,25 @@ namespace scene
 
 		ID3D11Device* const device = deviceResources->GetD3DDevice();
 
-		DirectX::XMFLOAT4 RimColourFull = {0.4f,0.4f,0.4f,1.0f};
+		m_insideColour = DirectX::XMFLOAT4{ utils::RandRange(10) / 10, utils::RandRange(10) / 10, utils::RandRange(10) / 10, 1.0f };
+		m_outsideColour = DirectX::XMFLOAT4 {1.0f,1.0f,1.0f,1.0f};
 
 		UINT NumPetalVertices = NumPetals * NumVerticesPerPetal;
 		VertexLit* const petalVertices = new VertexLit[NumPetalVertices];
 		ASSERT(petalVertices != nullptr, "Couldn't create petal vertices.\n");
 
 		const float angleStride = DirectX::XM_2PI / static_cast<float>(NumPetals);
+		const float petalStride = angleStride * 0.85;
+		const float gapStride = angleStride - petalStride;
+
 		VertexLit* vertex = petalVertices;
 		float startingAngle = 0.0f;
 		for (UINT petalIndex = 0; petalIndex < NumPetals; ++petalIndex)
 		{
-			const float startingAngleSin = DirectX::XMScalarSin(startingAngle + (angleStride * petalIndex));
-			const float startingAngleCos = DirectX::XMScalarCos(startingAngle + (angleStride * petalIndex));
-			const float startingAnglePlusStrideSin = DirectX::XMScalarSin(startingAngle + (angleStride * (petalIndex + 1)));
-			const float startingAnglePlusStrideCos = DirectX::XMScalarCos(startingAngle + (angleStride * (petalIndex + 1)));
+			const float startingAngleSin = DirectX::XMScalarSin((startingAngle + (gapStride * petalIndex)) + (petalStride * petalIndex));
+			const float startingAngleCos = DirectX::XMScalarCos((startingAngle + (gapStride * petalIndex)) + (petalStride * petalIndex));
+			const float startingAnglePlusStrideSin = DirectX::XMScalarSin((startingAngle + (gapStride * petalIndex)) + (petalStride * (petalIndex + 1)));
+			const float startingAnglePlusStrideCos = DirectX::XMScalarCos((startingAngle + (gapStride * petalIndex)) + (petalStride * (petalIndex + 1)));
 			// The centre
 			vertex->position.x = 0.0f;
 			vertex->position.y = 0.0f;
@@ -51,31 +58,30 @@ namespace scene
 			vertex->normal.x = 0.0f;
 			vertex->normal.y = 1.0f;
 			vertex->normal.z = 0.0f;
-			vertex->color = RimColourFull;
+			vertex->color = m_insideColour;
 			vertex++;
 			vertex->position.x = startingAngleSin * BaseRadius;
-			vertex->position.y = 0.0f;
+			vertex->position.y = 0.2f;
 			vertex->position.z = startingAngleCos * BaseRadius;
 			vertex->position.w = 1.0f;
 			vertex->normal.x = 0.0f;
 			vertex->normal.y = 1.0f;
 			vertex->normal.z = 0.0f;
-			vertex->color = RimColourFull;
+			vertex->color = m_outsideColour;
 			vertex++;
 			vertex->position.x = startingAnglePlusStrideSin * BaseRadius;
-			vertex->position.y = 0.0f;
+			vertex->position.y = 0.2f;
 			vertex->position.z = startingAnglePlusStrideCos * BaseRadius;
 			vertex->position.w = 1.0f;
 			vertex->normal.x = 0.0f;
 			vertex->normal.y = 1.0f;
 			vertex->normal.z = 0.0f;
-			vertex->color = RimColourFull;
+			vertex->color = m_outsideColour;
 			vertex++;
-
 		}
 
 		D3D11_SUBRESOURCE_DATA initialData = {};
-		initialData.pSysMem = vertex;
+		initialData.pSysMem = petalVertices;
 
 		D3D11_BUFFER_DESC bufferDesc = {};
 		bufferDesc.ByteWidth = NumPetalVertices * sizeof(VertexLit);
@@ -88,12 +94,17 @@ namespace scene
 			&m_vertexBuffer);
 		ASSERT_HANDLE(hr);
 
-		SetScale(10.0f);
+		SetScale(0.0f);
+
+
+		delete petalVertices;
+		
 	}
 
 	void Flower::Shutdown()
 	{
 		Entity::Shutdown();
+
 	}
 
 	void Flower::Update()
@@ -104,7 +115,7 @@ namespace scene
 			m_nectarStored += m_nectarGainRate * utils::Timers::GetFrameTime();
 		}
 
-		//SetScale(DirectX::XMVECTORF32{ m_nectarStored/100, m_nectarStored/100, m_nectarStored/100, 1.0f });
+		SetScale(DirectX::XMVECTORF32{ m_nectarStored/100, m_nectarStored/100, m_nectarStored/100, 1.0f });
 
 	}
 

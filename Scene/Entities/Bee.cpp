@@ -52,7 +52,7 @@ namespace scene
 			&m_vertexBuffer);
 		ASSERT_HANDLE(hr);
 
-		SetScale(1.0f);
+		SetScale(XMVECTORF32{ 0.2f, 0.2f, 0.4f, 1.0f });
 		m_startingPosition = GetPosition();
 		//m_targetPosition = m_position;
 	}
@@ -67,6 +67,8 @@ namespace scene
 	{
 		Entity::Update();
 		float collectionThisFrame;
+		XMVECTORF32 position = GetPositionAsF32();
+
 		switch (m_currentState)
 		{
 		case scene::Bee::SPAWNING:
@@ -84,13 +86,11 @@ namespace scene
 			}
 			break;
 		case scene::Bee::TRAVELLING:
-			
-			XMVECTORF32 position = GetPositionAsF32();
 			XMVECTORF32 targetPosition = m_targetFlower->GetPositionAsF32();
-			if (XMVector3Length(GetPosition() - m_targetFlower->GetPosition()).m128_f32[0] > 0.1f)
+			targetPosition.f[1] += 1.0f;
+			if (XMVector3Length(GetPosition() - targetPosition).m128_f32[0] > 0.1f)
 			{
-				MoveTowards(m_targetFlower->GetPosition());
-				
+				MoveTowards(targetPosition);
 			}
 			else
 			{
@@ -106,6 +106,17 @@ namespace scene
 			else
 			{
 				m_targetFlower->CollectionChange(true);
+				m_currentState = DESCEND;
+			}
+			break;
+		case scene::Bee::DESCEND:
+			targetPosition = m_targetFlower->GetPositionAsF32();
+			if (XMVector3Length(GetPosition() - targetPosition).m128_f32[1] > 0.1f)
+			{
+				MoveTowards(targetPosition);
+			}
+			else
+			{
 				m_currentState = COLLECTING;
 			}
 			break;
@@ -167,8 +178,12 @@ namespace scene
 		XMVECTOR directionVector =  targetVector - GetPosition();		
 		
 		XMVECTOR directionFacing = XMVector3Normalize(directionVector);
-		SetOrientation(directionFacing);
 		const float frameTime = utils::Timers::GetFrameTime();
+
+
+		SetOrientation(XMVector3Normalize(XMVectorLerp(GetOrientationAsVector(), 
+			directionFacing, m_movementSpeed * 2 * frameTime)));
+
 		const XMVECTOR delta = XMVectorScale(directionFacing, m_movementSpeed * frameTime);
 		SetPosition(m_position + delta);
 		return;

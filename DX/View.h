@@ -31,6 +31,8 @@ public:
 	void							Initialise();
 	void							Refresh();
 	void							Shutdown();
+	void							RotateCamera(float directionOfHorizontalMovement, float directionOfVerticalMovement);
+	void							MoveLookAtPoint(float directionOfHorizontalMovement, float directionOfVerticalMovement);
 
 	inline void						SetViewPosition( const DirectX::XMVECTOR viewPosition )
 	{
@@ -59,6 +61,12 @@ private:
 	DirectX::XMFLOAT4				m_ambient;
 	DirectX::XMVECTOR				m_dirLightDir;
 	DirectX::XMFLOAT4				m_dirLightCol;
+
+	DirectX::XMVECTOR				m_lookAtPoint; 
+	float							m_distanceFromCentre = 10.0f;
+	float							m_degreesAroundCentre = 45.0f;
+	float							m_cameraHorizontalMoveSpeed = 0.6f;
+	float							m_cameraVerticalMoveSpeed = 10.0f;
 };
 
 } // namespace DX

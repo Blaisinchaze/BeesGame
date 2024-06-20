@@ -29,6 +29,7 @@ namespace scene
 			SEARCHING, 
 			TRAVELLING, 
 			ARRIVING,
+			DESCEND,
 			COLLECTING,
 			RETURNING, 
 			DEPOSIT,

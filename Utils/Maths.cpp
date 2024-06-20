@@ -14,7 +14,9 @@ unsigned int Rand()
 
 float RandRange(int maxRange) 
 {
+	maxRange *= 100;
 	float tempFloat = Rand() % maxRange;
+	tempFloat /= 100;
 	
 	return tempFloat;
 }

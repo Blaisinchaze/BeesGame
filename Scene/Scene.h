@@ -61,7 +61,7 @@ private:
 	Ground*								m_ground;
 	Flower*								m_flower;
 
-	float								m_flowerBedScale;
+	int									m_flowerBedScale;
 	int									m_hiveCount;
 
 };

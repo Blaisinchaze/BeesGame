@@ -70,6 +70,8 @@ namespace scene
 			--m_beeCount;
 			
 		}
+		float hiveScale = (m_collectedNectar / 10000) + 1;
+		SetScale(DirectX::XMVECTORF32{ 0.5f * hiveScale, 1.0f * hiveScale, 0.5f * hiveScale, 1.0f });
 	}
 
 	void Hive::Render()

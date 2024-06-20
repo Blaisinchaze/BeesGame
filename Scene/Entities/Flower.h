@@ -23,11 +23,14 @@ namespace scene
 		static const UINT	NumVertices = 18;
 		static const UINT	NumPetals = 6;
 		static const UINT	NumVerticesPerPetal = 3;
-		float				BaseRadius = 1.0f;
-		bool				m_beingCollected;
-		float				m_nectarStored;
-		float				m_maxNectarStored;
-		float				m_nectarGainRate;
+		float				BaseRadius = 0.75f;
+		DirectX::XMFLOAT4	m_insideColour = { 0.0f,0.0f ,0.0f ,0.0f };
+		DirectX::XMFLOAT4	m_outsideColour = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		bool				m_beingCollected = false;
+		float				m_nectarStored = 50.0f;
+		float				m_maxNectarStored = 0.0f;
+		float				m_nectarGainRate = 2.0f;
 	};
 
 } // namespace scene

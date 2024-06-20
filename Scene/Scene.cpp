@@ -19,22 +19,16 @@ namespace scene
 
 Scene::Scene()
 {
-	//m_hiveList = containers::List<Hive*>();
-	//m_beeList = containers::List<Bee*>();
 	m_ground = new Ground();
 	m_flower = new Flower();
-	m_flowerBedScale = 1;
-	m_hiveCount = 1;
+	m_flowerBedScale = 8;
+	m_hiveCount = 10;
 }
 
 Scene::~Scene()
 {
-
-	//delete m_bees;
 	delete m_ground;
 	delete m_flower;
-	//delete m_flowerBedScale;
-	//delete m_hiveCount;
 }
 
 void Scene::Initialise()
@@ -137,30 +131,28 @@ void Scene::Initialise()
 	view->SetViewDirection( viewDirection );
 
 	XMVECTOR position;
-	XMMATRIX orientation;
-
-	//// 1st test object
-	//m_testObject1->Initialise();
-	//position = XMVectorSet( -2.0f, 0.0f, 0.0f, 1.0f );
-	//m_testObject1->SetPosition( position );
-	//// 2nd test object
-	//m_testObject2->Initialise();
-	//position = XMVectorSet( 2.0f, 0.0f, 0.0f, 1.0f );
-	//m_testObject2->SetPosition( position );
-	//orientation = XMMatrixRotationY( XM_PIDIV2 );
-	//m_testObject2->SetOrientation( orientation );
-
-
+	XMFLOAT4 colour;
 
 	for (int i = -2; i < m_hiveCount - 2; i++)
 	{
 		if(i == 0){continue;}
+
 		Hive* tempHive = new Hive();
 		tempHive->Initialise();
-		float offset = static_cast<float>(i);
-		position = XMVectorSet((offset * 2.0f), (1.0f), (offset * 2.0f), (0.0f));
+
+		const float angleStride = DirectX::XM_2PI / static_cast<float>(m_hiveCount);
+		const float startingAngleSin = DirectX::XMScalarSin((angleStride * i));
+		const float startingAngleCos = DirectX::XMScalarCos((angleStride * i));
+
+
+		position = XMVectorSet(startingAngleSin * (m_flowerBedScale / 1.5f), 
+			(1.0f), startingAngleCos * (m_flowerBedScale / 1.5f), (0.0f));
 		tempHive->SetPosition(position);
-		tempHive->SetScale(XMVECTORF32{ 0.5f, 1.0f, 0.5f, 1.0f });
+
+		//Calculate the angle to rotate the camera to face 
+		XMVECTOR directionVector = XMVECTOR{ 0.0f,1.0f,0.0f,0.0f } - position;
+		tempHive->SetOrientation(XMVector3Normalize(directionVector));
+
 		m_hiveList.push_back(tempHive);
 	}
 
@@ -172,8 +164,9 @@ void Scene::Initialise()
 			tempFlower->Initialise();
 			float offsetX = static_cast<float>(x);
 			float offsetY = static_cast<float>(y);
-			position = XMVectorSet((offsetX - m_flowerBedScale / 2), 0.0f, (offsetY - m_flowerBedScale / 2), 0.0f);
+			position = XMVectorSet((offsetX - m_flowerBedScale / 2) + utils::RandRange(1) / 2, utils::RandRange(1) + 0.2f, (offsetY - m_flowerBedScale / 2) + utils::RandRange(1) / 2, 0.0f);
 			tempFlower->SetPosition(position);
+			tempFlower->SetOrientation(XMVector3Normalize(XMVECTOR{ utils::RandRange(1),0.0f,utils::RandRange(1),utils::RandRange(1) }));
 			m_flowerList.push_back(tempFlower);
 		}
 	}
@@ -181,9 +174,12 @@ void Scene::Initialise()
 
 	m_ground->Initialise();
 
-	position = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	position = XMVectorSet(0.1f, 0.0f, 0.0f, 1.0f);
 	m_ground->SetPosition(position);
-	m_ground->SetScale(XMVECTORF32{ m_flowerBedScale, 0.1f,  m_flowerBedScale, 1.0f });
+	m_ground->SetScale(XMVECTORF32{ static_cast<float>(m_flowerBedScale) + 1.0f,
+		0.1f,  static_cast<float>( m_flowerBedScale) + 1.0f, 1.0f });
+	colour = { 0.6f, 0.361f, 0.267f, 1.0f };
+	m_ground->SetColour(colour);
 
 }
 
@@ -264,10 +260,19 @@ void Scene::Update()
 	}
 
 	m_ground->Update();
-	/*Core* const core = Core::Get();
+
+
+	Core* const core = Core::Get();
 	DX::Input* input = core->GetInput();
 	const float leftRight = input->GetLeftRight();
-	io::OutputMessage( "%.2f\n", leftRight );*/
+	const float upDown = input->GetUpDown();
+
+	DX::View* const view = core->GetView();
+	view->RotateCamera(leftRight, upDown);
+
+	const float wasdLeftRight = input->GetWASDLeftRight();
+	const float wasdUpDown = input->GetWASDUpDown();
+	view->MoveLookAtPoint(wasdLeftRight, wasdUpDown);
 
 }
 
@@ -304,7 +309,7 @@ void Scene::Render()
 		++flowerItor;
 	}
 
-	//m_ground->Render();
+	m_ground->Render();
 }
 
 void Scene::ActivateShaders( const ShaderTypes shaderType )
@@ -330,7 +335,7 @@ void Scene::SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVE
 	Bee* tempBee = new Bee();
 	tempBee->Initialise();
 	tempBee->SetPosition(position);
-	tempBee->SetScale(XMVECTORF32{ 0.2f, 0.2f, 0.2f, 1.0f });
+	tempBee->SetScale(XMVECTORF32{ 0.08f, 0.05f, 0.1f, 1.0f });
 	tempBee->SetColour(colour);
 	tempBee->SetStartingHive(startingHive);
 	m_beeList.push_back(tempBee);
@@ -338,7 +343,7 @@ void Scene::SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVE
 
 Flower* Scene::ReturnRandomFlower() 
 {
-	int randomFlower = utils::RandRange(m_flowerBedScale * m_flowerBedScale);
+	int randomFlower = static_cast<int>( utils::RandRange(m_flowerBedScale * m_flowerBedScale));
 	FlowerListItor flowerItor = m_flowerList.begin();
 	for (int i = 0; i < randomFlower; i++)
 	{
