@@ -78,6 +78,18 @@
     <ClCompile Include="Scene\EntityHelper.cpp">
       <Filter>Source Files\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Scene\Entities\Bee.cpp">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Entities\Hive.cpp">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Entities\Ground.cpp">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Entities\Flower.cpp">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -134,11 +146,20 @@
     <ClInclude Include="crtfuncs.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\Entities\Ground.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Scene\EntityHelper.h">
       <Filter>Source Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Entities\Bee.h">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Entities\Ground.h">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Entities\Hive.h">
+      <Filter>Source Files\Scene\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Entities\Flower.h">
+      <Filter>Source Files\Scene\Entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

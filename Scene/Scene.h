@@ -1,9 +1,14 @@
 #pragma once
+#include "Containers/List.h"
 
 namespace scene
 {
 
 class TestObject;
+class Hive;
+class Ground;
+class Bee;
+class Flower;
 
 // Object containing all the entities and related objects in the scene
 class Scene sealed
@@ -27,7 +32,8 @@ public:
 	void				Render();
 
 	void				ActivateShaders( const ShaderTypes shaderType );
-
+	void				SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position);
+	Flower*				ReturnRandomFlower();
 private:
 	struct ShaderData
 	{
@@ -44,8 +50,20 @@ private:
 	
 	ShaderData m_shaderData[ ShaderTypes::NumShaderTypes ];
 
-	TestObject*			m_testObject1;
-	TestObject*			m_testObject2;
+	containers::List<Hive*>				m_hiveList;
+	containers::List<Bee*>				m_beeList;
+	containers::List<Flower*>			m_flowerList;	
+
+	typedef containers::List< Bee* >::iterator BeeListItor;	
+	typedef containers::List< Hive* >::iterator HiveListItor;
+	typedef containers::List< Flower* >::iterator FlowerListItor;
+
+	Ground*								m_ground;
+	Flower*								m_flower;
+
+	float								m_flowerBedScale;
+	int									m_hiveCount;
+
 };
 
 } // namespace scene

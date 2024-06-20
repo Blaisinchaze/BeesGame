@@ -3,9 +3,14 @@
 #include "Core.h"
 #include "Utils\File.h"
 #include "Scene\Scene.h"
+#include "Scene\Entities\Hive.h"
+#include "Scene\Entities\Ground.h"
+#include "Scene\Entities\Bee.h"
+#include "Scene\Entities\Flower.h"
 #include "Scene\Entities\TestObject.h"
 #include "DX\Input.h"
 #include "DX\View.h"
+#include "Utils\Maths.h"
 
 using namespace DirectX;
 
@@ -14,18 +19,30 @@ namespace scene
 
 Scene::Scene()
 {
-	m_testObject1 = new TestObject();
-	m_testObject2 = new TestObject();
+	//m_hiveList = containers::List<Hive*>();
+	//m_beeList = containers::List<Bee*>();
+	m_ground = new Ground();
+	m_flower = new Flower();
+	m_flowerBedScale = 1;
+	m_hiveCount = 1;
 }
 
 Scene::~Scene()
 {
-	delete m_testObject1;
-	delete m_testObject2;
+
+	//delete m_bees;
+	delete m_ground;
+	delete m_flower;
+	//delete m_flowerBedScale;
+	//delete m_hiveCount;
 }
 
 void Scene::Initialise()
 {
+#pragma region DXSceneInitialisation
+
+
+
 	Core* const core = Core::Get();
 
 	const DX::DeviceResources* const deviceResources = core->GetDeviceResources();
@@ -112,7 +129,7 @@ void Scene::Initialise()
 	utils::file::CloseFile( psHandle );
 
 
-
+#pragma endregion
 	// TODO: Replace this with some proper camera code
 	DX::View* const view = core->GetView();
 	view->SetViewPosition( XMVECTOR{ -5.0f, 10.0f, 5.0f, 0.0f } );
@@ -122,25 +139,83 @@ void Scene::Initialise()
 	XMVECTOR position;
 	XMMATRIX orientation;
 
-	// 1st test object
-	m_testObject1->Initialise();
+	//// 1st test object
+	//m_testObject1->Initialise();
+	//position = XMVectorSet( -2.0f, 0.0f, 0.0f, 1.0f );
+	//m_testObject1->SetPosition( position );
+	//// 2nd test object
+	//m_testObject2->Initialise();
+	//position = XMVectorSet( 2.0f, 0.0f, 0.0f, 1.0f );
+	//m_testObject2->SetPosition( position );
+	//orientation = XMMatrixRotationY( XM_PIDIV2 );
+	//m_testObject2->SetOrientation( orientation );
 
-	position = XMVectorSet( -2.0f, 0.0f, 0.0f, 1.0f );
-	m_testObject1->SetPosition( position );
 
-	// 2nd test object
-	m_testObject2->Initialise();
 
-	position = XMVectorSet( 2.0f, 0.0f, 0.0f, 1.0f );
-	m_testObject2->SetPosition( position );
-	orientation = XMMatrixRotationY( XM_PIDIV2 );
-	m_testObject2->SetOrientation( orientation );
+	for (int i = -2; i < m_hiveCount - 2; i++)
+	{
+		if(i == 0){continue;}
+		Hive* tempHive = new Hive();
+		tempHive->Initialise();
+		float offset = static_cast<float>(i);
+		position = XMVectorSet((offset * 2.0f), (1.0f), (offset * 2.0f), (0.0f));
+		tempHive->SetPosition(position);
+		tempHive->SetScale(XMVECTORF32{ 0.5f, 1.0f, 0.5f, 1.0f });
+		m_hiveList.push_back(tempHive);
+	}
+
+	for (int x = 0; x < m_flowerBedScale; x++)
+	{
+		for (int y = 0; y < m_flowerBedScale; y++)
+		{
+			Flower* tempFlower = new Flower();
+			tempFlower->Initialise();
+			float offsetX = static_cast<float>(x);
+			float offsetY = static_cast<float>(y);
+			position = XMVectorSet((offsetX - m_flowerBedScale / 2), 0.0f, (offsetY - m_flowerBedScale / 2), 0.0f);
+			tempFlower->SetPosition(position);
+			m_flowerList.push_back(tempFlower);
+		}
+	}
+
+
+	m_ground->Initialise();
+
+	position = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	m_ground->SetPosition(position);
+	m_ground->SetScale(XMVECTORF32{ m_flowerBedScale, 0.1f,  m_flowerBedScale, 1.0f });
+
 }
 
 void Scene::Shutdown()
 {
-	m_testObject2->Shutdown();
-	m_testObject1->Shutdown();
+	HiveListItor hiveItor = m_hiveList.begin();
+	while (hiveItor != m_hiveList.end())
+	{
+		Hive* hive = *hiveItor;
+		hive->Shutdown();
+		delete hive;
+		++hiveItor;
+	}
+
+	BeeListItor beeItor = m_beeList.begin();
+	while (beeItor != m_beeList.end())
+	{
+		Bee* bee = *beeItor;
+		bee->Shutdown();
+		delete bee;
+		++beeItor;
+	}
+	FlowerListItor flowerItor = m_flowerList.begin();
+	while (flowerItor != m_flowerList.end())
+	{
+		Flower* flower = *flowerItor;
+		flower->Shutdown();
+		delete flower;
+		++flowerItor;
+	}
+
+	m_ground->Shutdown();
 
 	for( UINT shaderTypeIndex = 0; shaderTypeIndex < ShaderTypes::NumShaderTypes; ++shaderTypeIndex )
 	{
@@ -161,9 +236,34 @@ void Scene::Shutdown()
 
 void Scene::Update()
 {
-	m_testObject1->Update();
-	m_testObject2->Update();
 
+	HiveListItor hiveItor = m_hiveList.begin();
+	while (hiveItor != m_hiveList.end())
+	{
+		Hive* hive = *hiveItor;
+		hive->Update();
+
+		++hiveItor;
+	}
+
+	BeeListItor beeItor = m_beeList.begin();
+	while (beeItor != m_beeList.end())
+	{
+		Bee* bee = *beeItor;
+		bee->Update();
+
+		++beeItor;
+	}
+	FlowerListItor flowerItor = m_flowerList.begin();
+	while (flowerItor != m_flowerList.end())
+	{
+		Flower* flower = *flowerItor;
+		flower->Update();
+
+		++flowerItor;
+	}
+
+	m_ground->Update();
 	/*Core* const core = Core::Get();
 	DX::Input* input = core->GetInput();
 	const float leftRight = input->GetLeftRight();
@@ -173,8 +273,38 @@ void Scene::Update()
 
 void Scene::Render()
 {
-	m_testObject1->Render();
-	m_testObject2->Render();
+	//m_testObject1->Render();
+	//m_testObject2->Render();
+
+
+	HiveListItor hiveItor = m_hiveList.begin();
+	while (hiveItor != m_hiveList.end())
+	{
+		Hive* hive = *hiveItor;
+		hive->Render();
+
+		++hiveItor;
+	}
+
+	BeeListItor beeItor = m_beeList.begin();
+	while (beeItor != m_beeList.end())
+	{
+		Bee* bee = *beeItor;
+		bee->Render();
+
+		++beeItor;
+	}
+
+	FlowerListItor flowerItor = m_flowerList.begin();
+	while (flowerItor != m_flowerList.end())
+	{
+		Flower* flower = *flowerItor;
+		flower->Render();
+
+		++flowerItor;
+	}
+
+	//m_ground->Render();
 }
 
 void Scene::ActivateShaders( const ShaderTypes shaderType )
@@ -194,5 +324,32 @@ void Scene::ActivateShaders( const ShaderTypes shaderType )
 	deviceContext->GSSetShader( nullptr, nullptr, 0 );
 	deviceContext->PSSetShader( m_shaderData[ shaderType ].pixelShader, nullptr, 0 );
 }
+
+void Scene::SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position)
+{
+	Bee* tempBee = new Bee();
+	tempBee->Initialise();
+	tempBee->SetPosition(position);
+	tempBee->SetScale(XMVECTORF32{ 0.2f, 0.2f, 0.2f, 1.0f });
+	tempBee->SetColour(colour);
+	tempBee->SetStartingHive(startingHive);
+	m_beeList.push_back(tempBee);
+}
+
+Flower* Scene::ReturnRandomFlower() 
+{
+	int randomFlower = utils::RandRange(m_flowerBedScale * m_flowerBedScale);
+	FlowerListItor flowerItor = m_flowerList.begin();
+	for (int i = 0; i < randomFlower; i++)
+	{
+		++flowerItor;
+	}
+
+	Flower* flower = *flowerItor;
+
+	return flower;
+}
+
+
 
 } // namespace scene
