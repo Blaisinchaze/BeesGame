@@ -148,7 +148,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 		case WM_DESTROY:
 			PostQuitMessage( 0 );
 			break;
-
+		case WM_LBUTTONDOWN:
 		case WM_MOUSEWHEEL: 
 		case WM_KEYDOWN:
 		case WM_KEYUP:

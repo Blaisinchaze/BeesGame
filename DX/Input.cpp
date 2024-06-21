@@ -1,6 +1,7 @@
 #include "GameProgExercise01.h"
 #include "DX\DeviceResources.h"
 #include "DX\Input.h"
+#include <Mouse.h>
 
 namespace DX
 {
@@ -11,7 +12,9 @@ Input::Input():
 	m_wasdleftRight( 0.0f ),
 	m_wasdupDown( 0.0f ),
 	m_scroll(0),
-	m_scrollTimer(0.0f)
+	m_scrollTimer(0.0f),
+	m_startLocation (DirectX::XMFLOAT2{0.0f,0.0f}),
+	m_currentLocation (DirectX::XMFLOAT2{0.0f, 0.0f})
 {
 }
 
@@ -51,6 +54,19 @@ BOOL Input::HandleSystemMessage( const UINT message, const WPARAM wParam )
 			m_scroll = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 			m_scrollTimer = 0.05f;
 		break;
+		case WM_LBUTTONDOWN:
+			if (m_lMouseButtonPressed == false)
+			{
+				m_lMouseButtonPressed = true;
+				LPPOINT mousepos;
+				GetCursorPos(mousepos);
+
+				m_startLocation = DirectX::XMFLOAT2{ static_cast<float>(mousepos->x), static_cast<float>(mousepos->y) };
+			}
+			break;
+		case WM_MOUSEMOVE:
+
+			break;
 		case WM_KEYDOWN:
 			switch( wParam )
 			{

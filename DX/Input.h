@@ -49,6 +49,10 @@ private:
 	float							m_wasdupDown;
 	int								m_scroll;
 	float							m_scrollTimer;
+	bool							m_lMouseButtonPressed;
+
+	DirectX::XMFLOAT2				m_startLocation;
+	DirectX::XMFLOAT2				m_currentLocation;
 };
 
 } // namespace DX
