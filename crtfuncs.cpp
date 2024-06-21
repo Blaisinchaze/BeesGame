@@ -9,7 +9,7 @@ void WINAPI wWinMainCRTStartup()
 
 	WCHAR* commandLine = GetCommandLine();
 
-	// Skip past program name (first token in command line).
+	// Skip past program name ( first token in command line ).
 	if( *commandLine == '"' ) // check for and handle quoted program name
 	{
 		// Scan, and skip over, subsequent characters until another
@@ -17,7 +17,7 @@ void WINAPI wWinMainCRTStartup()
 		while( *commandLine && ( *commandLine != '"' ) )
 			commandLine++;
 
-		// If we stopped on a double-quote (usual case), skip over it.
+		// If we stopped on a double-quote ( usual case ), skip over it.
 		if( *commandLine == '"' )
 			commandLine++;
 	}
@@ -41,13 +41,13 @@ void WINAPI wWinMainCRTStartup()
 #ifdef __cplusplus
 extern "C"
 {
-#pragma function(memset)
+#pragma function( memset )
 	void* __cdecl memset( _Out_writes_bytes_all_( count ) void* dest, _In_ int value, _In_ size_t count )
 	{
-		char* bytes = (char*)dest;
+		char* bytes = ( char* )dest;
 		while( count-- )
 		{
-			*bytes++ = (char)value;
+			*bytes++ = ( char )value;
 		}
 		return dest;
 	}
@@ -55,8 +55,8 @@ extern "C"
 #ifdef _DEBUG
 	void* __cdecl memcpy( _Out_writes_bytes_all_( _Size ) void* _Dst, _In_reads_bytes_( _Size ) void const* _Src, _In_ size_t _Size )
 	{
-		char* pszDest = (char*)_Dst;
-		const char* pszSource = (const char*)_Src;
+		char* pszDest = ( char* )_Dst;
+		const char* pszSource = ( const char* )_Src;
 		if( ( pszDest != NULL ) && ( pszSource != NULL ) )
 		{
 			while( _Size ) //till cnt
@@ -78,7 +78,7 @@ extern "C"
 		return 0;
 	}
 
-	void __cdecl _wassert(
+	void __cdecl _wassert( 
 		_In_z_ wchar_t const* _Message,
 		_In_z_ wchar_t const* _File,
 		_In_   unsigned       _Line )

@@ -1,11 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
-// \author (c) Marco Paland (info@paland.com)
+// \author ( c ) Marco Paland ( info@paland.com )
 //             2014-2019, PALANDesign Hannover, Germany
 //
-// \license The MIT License (MIT)
+// \license The MIT License ( MIT )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
+// of this software and associated documentation files ( the "Software" ), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
@@ -46,7 +46,7 @@ extern "C" {
 	 * This function is declared here only. You have to write your custom implementation somewhere
 	 * \param character Character to output
 	 */
-	 //void _putchar(char character);
+	 //void _putchar( char character );
 
 
 	 /**
@@ -58,12 +58,12 @@ extern "C" {
 	  * \return The number of characters that are written into the array, not counting the terminating null character
 	  */
 	  //#define printf printf_
-	  //int printf_(const char* format, ...);
+	  //int printf_( const char* format, ... );
 
 
 	  /**
 	   * Tiny sprintf implementation
-	   * Due to security reasons (buffer overflow) YOU SHOULD CONSIDER USING (V)SNPRINTF INSTEAD!
+	   * Due to security reasons ( buffer overflow ) YOU SHOULD CONSIDER USING ( V )SNPRINTF INSTEAD!
 	   * \param buffer A pointer to the buffer where to store the formatted string. MUST be big enough to store the output!
 	   * \param format A string that specifies the format of the output
 	   * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
@@ -95,7 +95,7 @@ extern "C" {
 	 * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
 	 */
 	 //#define vprintf vprintf_
-	 //int vprintf_(const char* format, va_list va);
+	 //int vprintf_( const char* format, va_list va );
 
 
 	 /**

@@ -3,8 +3,8 @@
 //
 // Simple shader to render a triangle
 //
-// Advanced Technology Group (ATG)
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Advanced Technology Group ( ATG )
+// Copyright ( C ) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 
 struct PS_INPUT

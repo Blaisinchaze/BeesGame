@@ -23,7 +23,14 @@ View::View( DeviceResources* deviceResources ) :
 	m_dirLightDir = XMVECTOR{ 0.25f, -0.75f, -0.25f, 0.0f };
 	m_dirLightDir = XMVector3Normalize( m_dirLightDir );
 	m_dirLightCol = XMFLOAT4{ 0.8f, 0.8f, 0.6f, 0.0f };
-	m_lookAtPoint = XMVECTOR{ 0.0f,0.0f,0.0f,0.0f };
+	m_lookAtPoint = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
+	m_cameraOffset = XMVECTOR{ 0.0f, 0.0f, 0.0f, 0.0f };
+
+	m_distanceFromCentre = 10.0f;
+	m_degreesAroundCentre = 45.0f;
+	m_cameraHorizontalMoveSpeed = 0.5f;
+	m_cameraVerticalMoveSpeed = 0.3f;
+	m_cameraZoomSpeed = 10.0f;
 }
 
 View::~View()
@@ -91,39 +98,78 @@ void View::Shutdown()
 		m_vpConstantBuffer->Release();
 }
 
-void View::RotateCamera(float directionOfHorizontalMovement, float directionOfVerticalMovement)
-{	
-	float deltaTime = utils::Timers::GetFrameTime();
-
-	directionOfVerticalMovement = -directionOfVerticalMovement;
-	if (directionOfVerticalMovement + m_distanceFromCentre > 2.0f &&
-		directionOfVerticalMovement + m_distanceFromCentre < 15.0f)
-	{
-		m_distanceFromCentre += directionOfVerticalMovement * m_cameraVerticalMoveSpeed * deltaTime;
-	}
-
-	float angleStride = 0;
-	if (directionOfHorizontalMovement != 0)
-	{
-		angleStride = (DirectX::XM_2PI / -directionOfHorizontalMovement) * m_cameraHorizontalMoveSpeed * deltaTime;
-		
-	}
-	const float startingAngleSin = DirectX::XMScalarSin(m_degreesAroundCentre + angleStride);
-	const float startingAngleCos = DirectX::XMScalarCos(m_degreesAroundCentre + angleStride);
-
-
-	SetViewPosition(XMVECTOR{ startingAngleSin * m_distanceFromCentre, m_distanceFromCentre, startingAngleCos * m_distanceFromCentre, 0.0f });
-	m_degreesAroundCentre = m_degreesAroundCentre + angleStride;
-	//Calculate the angle to rotate the camera to face 
+//Void that rotates the camera to face the look at point. This should be called after all other transformations on the camera.
+void View::LookAtFocusPoint()
+{
+	//Calculate the angle to rotate the camera to face the look at position 
 	XMVECTOR directionVector = m_lookAtPoint - m_viewPosition;
 	SetViewDirection(XMVector3Normalize(directionVector));
 }
 
-void View::MoveLookAtPoint(float directionOfHorizontalMovement, float directionOfVerticalMovement)
-{
-	float deltaTime = utils::Timers::GetFrameTime();
-	XMVECTOR inputDirection = { directionOfHorizontalMovement, 0.0f, directionOfVerticalMovement, 0.0f };
-	XMVECTOR normalisedDifferentceInPosition = XMVector3Normalize(m_viewDirection * inputDirection);
-	m_lookAtPoint += normalisedDifferentceInPosition *deltaTime;
+//Void that calculates the offset for a camera when rotating around the look at point.
+//"directionOfHorizontalMovement" is movement around the yaw-axis
+//"directionOfVerticalMovement" is movement around the pitch-axis *STILL UNDER DEVELOPMENT*
+void View::RotateCameraAroundPivot( float directionOfHorizontalMovement, float directionOfVerticalMovement )
+{	
+	//Local declarations used in the function
+	const float deltaTime = utils::Timers::GetFrameTime();
+	float angleStride = 0;
+	const float startingAngleSin = XMScalarSin(m_degreesAroundCentre + angleStride);
+	const float startingAngleCos = XMScalarCos(m_degreesAroundCentre + angleStride);
+
+	//Check used to ensure the angleStride is not inf
+	if ( directionOfHorizontalMovement != 0 )
+	{
+		angleStride = ( XM_2PI / -directionOfHorizontalMovement ) * m_cameraHorizontalMoveSpeed * deltaTime;
+		
+	}
+
+	//Save the camera offset to be used in MoveLookAtPoint
+	m_cameraOffset = XMVECTOR{ startingAngleSin * m_distanceFromCentre, m_distanceFromCentre, startingAngleCos * m_distanceFromCentre, 0.0f } ;
+	m_degreesAroundCentre = m_degreesAroundCentre + angleStride;
 }
+
+//Void that calculates where the look at point should be in the world - 
+//"directionOfHorizontalMovement" is movement along the x-axis relative to the camera.
+//"directionOfVerticalMovement" is movement along the z-axis relative to the camera.
+void View::MoveLookAtPoint( float directionOfHorizontalMovement, float directionOfVerticalMovement )
+{
+	const float deltaTime = utils::Timers::GetFrameTime();
+
+	XMVECTOR inputDirection = XMVector3Normalize ( XMVECTOR{ directionOfHorizontalMovement, 0.0f, directionOfVerticalMovement, 0.0f } );
+	XMVECTOR normalisedCameraFacingDirection = XMVector3Normalize( m_viewDirection );
+
+	// Project the view direction onto the horizontal plane
+	XMVECTOR vertical = XMVECTOR{ 0.0f, 1.0f, 0.0f, 1.0f };
+	XMVECTOR dotProd = XMVector3Dot( vertical, normalisedCameraFacingDirection );
+	XMVECTOR verticalComponent = XMVectorScale(vertical, dotProd.m128_f32[0]);
+
+	// This is the view direction "flattened" (could be zero if looking straight down)
+	XMVECTOR horizonalComponent = XMVectorSubtract( normalisedCameraFacingDirection, verticalComponent );
+	XMVECTOR viewDirHorizontal = XMVector3NormalizeEst( horizonalComponent );
+
+	// Get the vector at a right angle to this view direction for left-right
+	XMVECTOR lateralDirHorizontal = XMVector3Cross( horizonalComponent, vertical ); // May need to change the order of these params as it might be backwards
+
+
+	// Apply this to our "cross" of basis forward/sideways vectors
+	XMVECTOR sidewaysMove = XMVectorScale(lateralDirHorizontal, -directionOfHorizontalMovement * m_cameraVerticalMoveSpeed);
+	XMVECTOR forwardMove = XMVectorScale(viewDirHorizontal, directionOfVerticalMovement * m_cameraVerticalMoveSpeed);
+
+	// Put them both together - add this to current camera position
+	m_lookAtPoint += XMVectorAdd(sidewaysMove, forwardMove);
+	SetViewPosition(m_lookAtPoint + m_cameraOffset);
+}
+
+//Void for zooming the camera towards or away from the look at point
+//"ZoomValue" is between -1.0f and 1.0f
+void View::CameraZoom(float ZoomValue)
+{
+	if (m_distanceFromCentre - ZoomValue  > 2.0f &&
+		m_distanceFromCentre - ZoomValue  < 15.0f)
+	{
+		m_distanceFromCentre -= m_cameraZoomSpeed * ZoomValue * utils::Timers::GetFrameTime();
+	}
+}
+
 } // namespace DX

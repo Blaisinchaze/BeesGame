@@ -1,6 +1,6 @@
 ﻿//
 // DeviceResources.cpp - A wrapper for the Direct3D 11 device and swapchain
-//                       (requires DirectX 11.1 Runtime)
+//                       ( requires DirectX 11.1 Runtime )
 //
 
 #include "GameProgExercise01.h"
@@ -13,11 +13,11 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-#if defined(_DEBUG)
+#if defined( _DEBUG )
     // Check for SDK Layer support.
     inline bool SdkLayersAvailable()
     {
-        HRESULT hr = D3D11CreateDevice(
+        HRESULT hr = D3D11CreateDevice( 
             nullptr,
             D3D_DRIVER_TYPE_NULL,       // There is no need to create a real hardware device.
             nullptr,
@@ -30,13 +30,13 @@ namespace
             nullptr                     // No need to keep the D3D device context reference.
             );
 
-        return SUCCEEDED(hr);
+        return SUCCEEDED( hr );
     }
 #endif
 
-    inline DXGI_FORMAT NoSRGB(DXGI_FORMAT fmt)
+    inline DXGI_FORMAT NoSRGB( DXGI_FORMAT fmt )
     {
-        switch (fmt)
+        switch ( fmt )
         {
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:   return DXGI_FORMAT_R8G8B8A8_UNORM;
         case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:   return DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -47,23 +47,23 @@ namespace
 };
 
 // Constructor for DeviceResources.
-DeviceResources::DeviceResources(
+DeviceResources::DeviceResources( 
     DXGI_FORMAT backBufferFormat,
     DXGI_FORMAT depthBufferFormat,
     UINT backBufferCount,
     D3D_FEATURE_LEVEL minFeatureLevel,
-    unsigned int flags) noexcept :
+    unsigned int flags ) noexcept :
         m_screenViewport{},
-        m_backBufferFormat(backBufferFormat),
-        m_depthBufferFormat(depthBufferFormat),
-        m_backBufferCount(backBufferCount),
-        m_d3dMinFeatureLevel(minFeatureLevel),
-        m_window(nullptr),
-        m_d3dFeatureLevel(D3D_FEATURE_LEVEL_9_1),
+        m_backBufferFormat( backBufferFormat ),
+        m_depthBufferFormat( depthBufferFormat ),
+        m_backBufferCount( backBufferCount ),
+        m_d3dMinFeatureLevel( minFeatureLevel ),
+        m_window( nullptr ),
+        m_d3dFeatureLevel( D3D_FEATURE_LEVEL_9_1 ),
         m_outputSize{0, 0, 1, 1},
-        m_colorSpace(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709),
-        m_options(flags | c_FlipPresent),
-        m_deviceNotify(nullptr)
+        m_colorSpace( DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 ),
+        m_options( flags | c_FlipPresent ),
+        m_deviceNotify( nullptr )
 {
 }
 
@@ -72,58 +72,58 @@ BOOL DeviceResources::CreateDeviceResources()
 {
     UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-#if defined(_DEBUG)
-    if (SdkLayersAvailable())
+#if defined( _DEBUG )
+    if ( SdkLayersAvailable() )
     {
         // If the project is in a debug build, enable debugging via SDK Layers with this flag.
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
     }
     else
     {
-		DEBUG_MESSAGE("WARNING: Direct3D Debug Device is not available\n");
+		DEBUG_MESSAGE( "WARNING: Direct3D Debug Device is not available\n" );
     }
 #endif
 
     CreateFactory();
 
     // Determines whether tearing support is available for fullscreen borderless windows.
-    if (m_options & c_AllowTearing)
+    if ( m_options & c_AllowTearing )
     {
         BOOL allowTearing = FALSE;
 
         ComPtr<IDXGIFactory5> factory5;
-        HRESULT hr = m_dxgiFactory.As(&factory5);
-        if (SUCCEEDED(hr))
+        HRESULT hr = m_dxgiFactory.As( &factory5 );
+        if ( SUCCEEDED( hr ) )
         {
-            hr = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
+            hr = factory5->CheckFeatureSupport( DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof( allowTearing ) );
         }
 
-        if (FAILED(hr) || !allowTearing)
+        if ( FAILED( hr ) || !allowTearing )
         {
             m_options &= ~c_AllowTearing;
-			DEBUG_MESSAGE("WARNING: Variable refresh rate displays not supported.\n");
+			DEBUG_MESSAGE( "WARNING: Variable refresh rate displays not supported.\n" );
         }
     }
 
     // Disable HDR if we are on an OS that can't support FLIP swap effects
-    if (m_options & c_EnableHDR)
+    if ( m_options & c_EnableHDR )
     {
         ComPtr<IDXGIFactory5> factory5;
-        if (FAILED(m_dxgiFactory.As(&factory5)))
+        if ( FAILED( m_dxgiFactory.As( &factory5 ) ) )
         {
             m_options &= ~c_EnableHDR;
-			DEBUG_MESSAGE("WARNING: HDR swap chains not supported.\n");
+			DEBUG_MESSAGE( "WARNING: HDR swap chains not supported.\n" );
         }
     }
 
     // Disable FLIP if not on a supporting OS
-    if (m_options & c_FlipPresent)
+    if ( m_options & c_FlipPresent )
     {
         ComPtr<IDXGIFactory4> factory4;
-        if (FAILED(m_dxgiFactory.As(&factory4)))
+        if ( FAILED( m_dxgiFactory.As( &factory4 ) ) )
         {
             m_options &= ~c_FlipPresent;
-			DEBUG_MESSAGE("INFO: Flip swap effects not supported.\n");
+			DEBUG_MESSAGE( "INFO: Flip swap effects not supported.\n" );
         }
     }
 
@@ -140,25 +140,25 @@ BOOL DeviceResources::CreateDeviceResources()
     };
 
     UINT featLevelCount = 0;
-    for (; featLevelCount < _countof(s_featureLevels); ++featLevelCount)
+    for ( ; featLevelCount < _countof( s_featureLevels ); ++featLevelCount )
     {
-        if (s_featureLevels[featLevelCount] < m_d3dMinFeatureLevel)
+        if ( s_featureLevels[featLevelCount] < m_d3dMinFeatureLevel )
             break;
     }
 
 	ASSERT( featLevelCount != 0, "minFeatureLevel too high.\n" );
 
     ComPtr<IDXGIAdapter1> adapter;
-    GetHardwareAdapter(adapter.GetAddressOf());
+    GetHardwareAdapter( adapter.GetAddressOf() );
 
     // Create the Direct3D 11 API device object and a corresponding context.
     ComPtr<ID3D11Device> device;
     ComPtr<ID3D11DeviceContext> context;
 
     HRESULT hr = E_FAIL;
-    if (adapter)
+    if ( adapter )
     {
-        hr = D3D11CreateDevice(
+        hr = D3D11CreateDevice( 
             NULL,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
@@ -171,19 +171,19 @@ BOOL DeviceResources::CreateDeviceResources()
             context.GetAddressOf()  // Returns the device immediate context.
             );
     }
-#if !defined(_DEBUG)
+#if !defined( _DEBUG )
     else
     {
         io::OutputMessage( "No Direct3D hardware device found.\n" );
 		return TRUE;
     }
 #else
-    if (FAILED(hr))
+    if ( FAILED( hr ) )
     {
         // If the initialization fails, fall back to the WARP device.
         // For more information on WARP, see:
         // http://go.microsoft.com/fwlink/?LinkId=286690
-        hr = D3D11CreateDevice(
+        hr = D3D11CreateDevice( 
             nullptr,
             D3D_DRIVER_TYPE_WARP, // Create a WARP device instead of a hardware device.
             nullptr,
@@ -196,9 +196,9 @@ BOOL DeviceResources::CreateDeviceResources()
             context.GetAddressOf()
             );
 
-        if (SUCCEEDED(hr))
+        if ( SUCCEEDED( hr ) )
         {
-			io::OutputMessage("Direct3D Adapter - WARP\n");
+			io::OutputMessage( "Direct3D Adapter - WARP\n" );
         }
 		else
 		{
@@ -210,23 +210,23 @@ BOOL DeviceResources::CreateDeviceResources()
 
 #ifdef _DEBUG
     ComPtr<ID3D11Debug> d3dDebug;
-    if (SUCCEEDED(device.As(&d3dDebug)))
+    if ( SUCCEEDED( device.As( &d3dDebug ) ) )
     {
         ComPtr<ID3D11InfoQueue> d3dInfoQueue;
-        if (SUCCEEDED(d3dDebug.As(&d3dInfoQueue)))
+        if ( SUCCEEDED( d3dDebug.As( &d3dInfoQueue ) ) )
         {
 #ifdef _DEBUG
-            d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-            d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+            d3dInfoQueue->SetBreakOnSeverity( D3D11_MESSAGE_SEVERITY_CORRUPTION, true );
+            d3dInfoQueue->SetBreakOnSeverity( D3D11_MESSAGE_SEVERITY_ERROR, true );
 #endif
             D3D11_MESSAGE_ID hide [] =
             {
                 D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
             };
             D3D11_INFO_QUEUE_FILTER filter = {};
-            filter.DenyList.NumIDs = _countof(hide);
+            filter.DenyList.NumIDs = _countof( hide );
             filter.DenyList.pIDList = hide;
-            d3dInfoQueue->AddStorageFilterEntries(&filter);
+            d3dInfoQueue->AddStorageFilterEntries( &filter );
         }
     }
 #endif
@@ -251,11 +251,11 @@ BOOL DeviceResources::CreateDeviceResources()
 		context->RSSetState( rasteriserState );
 	}
 
-	device.As(&m_d3dDevice);
+	device.As( &m_d3dDevice );
 	ASSERT( m_d3dDevice != nullptr, "Unable to get D3D device.\n" );
-	context.As(&m_d3dContext);
+	context.As( &m_d3dContext );
 	ASSERT( m_d3dContext != nullptr, "Unable to get D3D context.\n" );
-	context.As(&m_d3dAnnotation);
+	context.As( &m_d3dAnnotation );
 	ASSERT( m_d3dAnnotation != nullptr, "Unable to get D3D annotation.\n" );
 
 	return FALSE;
@@ -266,7 +266,7 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
 {
 	HRESULT hr = 0;
 
-    if (!m_window)
+    if ( !m_window )
     {
         ASSERT( FALSE, "Call SetWindow with a valid Win32 window handle.\n" );
 		return TRUE;
@@ -274,7 +274,7 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
 
     // Clear the previous window size specific context.
     ID3D11RenderTargetView* nullViews[] = {nullptr};
-    m_d3dContext->OMSetRenderTargets(_countof(nullViews), nullViews, nullptr);
+    m_d3dContext->OMSetRenderTargets( _countof( nullViews ), nullViews, nullptr );
     m_d3dRenderTargetView.Reset();
     m_d3dDepthStencilView.Reset();
     m_renderTarget.Reset();
@@ -282,24 +282,24 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
     m_d3dContext->Flush();
 
     // Determine the render target size in pixels.
-    UINT backBufferWidth = std::max<UINT>(static_cast<UINT>(m_outputSize.right - m_outputSize.left), 1u);
-    UINT backBufferHeight = std::max<UINT>(static_cast<UINT>(m_outputSize.bottom - m_outputSize.top), 1u);
-    DXGI_FORMAT backBufferFormat = (m_options & (c_FlipPresent | c_AllowTearing | c_EnableHDR)) ? NoSRGB(m_backBufferFormat) : m_backBufferFormat;
+    UINT backBufferWidth = std::max<UINT>( static_cast<UINT>( m_outputSize.right - m_outputSize.left ), 1u );
+    UINT backBufferHeight = std::max<UINT>( static_cast<UINT>( m_outputSize.bottom - m_outputSize.top ), 1u );
+    DXGI_FORMAT backBufferFormat = ( m_options & ( c_FlipPresent | c_AllowTearing | c_EnableHDR ) ) ? NoSRGB( m_backBufferFormat ) : m_backBufferFormat;
 
-    if (m_swapChain)
+    if ( m_swapChain )
     {
         // If the swap chain already exists, resize it.
-        hr = m_swapChain->ResizeBuffers(
+        hr = m_swapChain->ResizeBuffers( 
             m_backBufferCount,
             backBufferWidth,
             backBufferHeight,
             backBufferFormat,
-            (m_options & c_AllowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u
+            ( m_options & c_AllowTearing ) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u
             );
 
-        if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+        if ( hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET )
         {
-			DEBUG_MESSAGE("Device Lost on ResizeBuffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_d3dDevice->GetDeviceRemovedReason() : hr);
+			DEBUG_MESSAGE( "Device Lost on ResizeBuffers: Reason code 0x%08X\n", ( hr == DXGI_ERROR_DEVICE_REMOVED ) ? m_d3dDevice->GetDeviceRemovedReason() : hr );
             // If the device was removed for any reason, a new device and swap chain will need to be created.
             HandleDeviceLost();
 
@@ -309,7 +309,7 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
         }
         else
         {
-			ASSERT_HANDLE(hr);
+			ASSERT_HANDLE( hr );
         }
     }
 	else
@@ -334,11 +334,11 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
 		swapChainDesc.Windowed = TRUE;
 		swapChainDesc.SwapEffect = ( m_options & ( c_FlipPresent | c_AllowTearing | c_EnableHDR ) ) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
 		swapChainDesc.Flags = ( m_options & c_AllowTearing ) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u;
-		hr = m_dxgiFactory->CreateSwapChain(
+		hr = m_dxgiFactory->CreateSwapChain( 
 			m_d3dDevice.Get(),
 			&swapChainDesc,
 			&swapchain
-		);
+		 );
 
 		m_swapChain = swapchain;
 #else
@@ -360,18 +360,18 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
 		fsSwapChainDesc.Windowed = TRUE;
 
 		// Create a SwapChain from a Win32 window.
-		hr = m_dxgiFactory->CreateSwapChainForHwnd(
+		hr = m_dxgiFactory->CreateSwapChainForHwnd( 
 			m_d3dDevice.Get(),
 			m_window,
 			&swapChainDesc,
 			&fsSwapChainDesc,
 			nullptr, m_swapChain.ReleaseAndGetAddressOf()
-		);
+		 );
 #endif // ENABLE_PIX
 		ASSERT( SUCCEEDED( hr ), "Unable to create swap chain.\n" );
 
         // This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut
-        hr = m_dxgiFactory->MakeWindowAssociation(m_window, DXGI_MWA_NO_ALT_ENTER);
+        hr = m_dxgiFactory->MakeWindowAssociation( m_window, DXGI_MWA_NO_ALT_ENTER );
 		ASSERT( SUCCEEDED( hr ), "Unable to make window assocciation.\n" );
     }
 
@@ -379,21 +379,21 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
     UpdateColorSpace();
 
     // Create a render target view of the swap chain back buffer.
-    hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(m_renderTarget.ReleaseAndGetAddressOf()));
+    hr = m_swapChain->GetBuffer( 0, IID_PPV_ARGS( m_renderTarget.ReleaseAndGetAddressOf() ) );
 	ASSERT( SUCCEEDED( hr ), "Can't get swap chain buffer.\n" );
 
-    CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(D3D11_RTV_DIMENSION_TEXTURE2D, m_backBufferFormat);
-    hr = m_d3dDevice->CreateRenderTargetView(
+    CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc( D3D11_RTV_DIMENSION_TEXTURE2D, m_backBufferFormat );
+    hr = m_d3dDevice->CreateRenderTargetView( 
         m_renderTarget.Get(),
         &renderTargetViewDesc,
         m_d3dRenderTargetView.ReleaseAndGetAddressOf()
         );
 	ASSERT( SUCCEEDED( hr ), "Can't create render target.\n" );
 
-    if (m_depthBufferFormat != DXGI_FORMAT_UNKNOWN)
+    if ( m_depthBufferFormat != DXGI_FORMAT_UNKNOWN )
     {
         // Create a depth stencil view for use with 3D rendering if needed.
-        CD3D11_TEXTURE2D_DESC depthStencilDesc(
+        CD3D11_TEXTURE2D_DESC depthStencilDesc( 
             m_depthBufferFormat,
             backBufferWidth,
             backBufferHeight,
@@ -402,15 +402,15 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
             D3D11_BIND_DEPTH_STENCIL
             );
 
-        hr = m_d3dDevice->CreateTexture2D(
+        hr = m_d3dDevice->CreateTexture2D( 
             &depthStencilDesc,
             nullptr,
             m_depthStencil.ReleaseAndGetAddressOf()
             );
 		ASSERT( SUCCEEDED( hr ), "Can't create render target.\n" );
 
-        CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-        hr = m_d3dDevice->CreateDepthStencilView(
+        CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc( D3D11_DSV_DIMENSION_TEXTURE2D );
+        hr = m_d3dDevice->CreateDepthStencilView( 
             m_depthStencil.Get(),
             &depthStencilViewDesc,
             m_d3dDepthStencilView.ReleaseAndGetAddressOf()
@@ -420,18 +420,18 @@ BOOL DeviceResources::CreateWindowSizeDependentResources()
     }
 
     // Set the 3D rendering viewport to target the entire window.
-    m_screenViewport = CD3D11_VIEWPORT(
+    m_screenViewport = CD3D11_VIEWPORT( 
         0.0f,
         0.0f,
-        static_cast<float>(backBufferWidth),
-        static_cast<float>(backBufferHeight)
+        static_cast<float>( backBufferWidth ),
+        static_cast<float>( backBufferHeight )
         );
 
 	return FALSE;
 }
 
-// This method is called when the Win32 window is created (or re-created).
-void DeviceResources::SetWindow(HWND window, int width, int height)
+// This method is called when the Win32 window is created ( or re-created ).
+void DeviceResources::SetWindow( HWND window, int width, int height )
 {
     m_window = window;
 
@@ -441,13 +441,13 @@ void DeviceResources::SetWindow(HWND window, int width, int height)
 }
 
 // This method is called when the Win32 window changes size
-bool DeviceResources::WindowSizeChanged(int width, int height)
+bool DeviceResources::WindowSizeChanged( int width, int height )
 {
     RECT newRc;
     newRc.left = newRc.top = 0;
     newRc.right = width;
     newRc.bottom = height;
-    if (newRc == m_outputSize)
+    if ( newRc == m_outputSize )
     {
         // Handle color space settings for HDR
         UpdateColorSpace();
@@ -463,7 +463,7 @@ bool DeviceResources::WindowSizeChanged(int width, int height)
 // Recreate all device resources and set them back to the current state.
 void DeviceResources::HandleDeviceLost()
 {
-    if (m_deviceNotify)
+    if ( m_deviceNotify )
     {
         m_deviceNotify->OnDeviceLost();
     }
@@ -479,9 +479,9 @@ void DeviceResources::HandleDeviceLost()
 #ifdef _DEBUG
     {
         ComPtr<ID3D11Debug> d3dDebug;
-        if (SUCCEEDED(m_d3dDevice.As(&d3dDebug)))
+        if ( SUCCEEDED( m_d3dDevice.As( &d3dDebug ) ) )
         {
-            d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
+            d3dDebug->ReportLiveDeviceObjects( D3D11_RLDO_SUMMARY );
         }
     }
 #endif
@@ -492,7 +492,7 @@ void DeviceResources::HandleDeviceLost()
     CreateDeviceResources();
     CreateWindowSizeDependentResources();
 
-    if (m_deviceNotify)
+    if ( m_deviceNotify )
     {
         m_deviceNotify->OnDeviceRestored();
     }
@@ -502,42 +502,42 @@ void DeviceResources::HandleDeviceLost()
 void DeviceResources::Present()
 {
     HRESULT hr;
-    if (m_options & c_AllowTearing)
+    if ( m_options & c_AllowTearing )
     {
         // Recommended to always use tearing if supported when using a sync interval of 0.
-        hr = m_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+        hr = m_swapChain->Present( 0, DXGI_PRESENT_ALLOW_TEARING );
     }
     else
     {
         // The first argument instructs DXGI to block until VSync, putting the application
         // to sleep until the next VSync. This ensures we don't waste any cycles rendering
         // frames that will never be displayed to the screen.
-        hr = m_swapChain->Present(1, 0);
+        hr = m_swapChain->Present( 1, 0 );
     }
 
     // Discard the contents of the render target.
     // This is a valid operation only when the existing contents will be entirely
     // overwritten. If dirty or scroll rects are used, this call should be removed.
-    m_d3dContext->DiscardView(m_d3dRenderTargetView.Get());
+    m_d3dContext->DiscardView( m_d3dRenderTargetView.Get() );
 
-    if (m_d3dDepthStencilView)
+    if ( m_d3dDepthStencilView )
     {
         // Discard the contents of the depth stencil.
-        m_d3dContext->DiscardView(m_d3dDepthStencilView.Get());
+        m_d3dContext->DiscardView( m_d3dDepthStencilView.Get() );
     }
 
     // If the device was removed either by a disconnection or a driver upgrade, we
     // must recreate all device resources.
-    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+    if ( hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET )
     {
-		DEBUG_MESSAGE("Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_d3dDevice->GetDeviceRemovedReason() : hr);
+		DEBUG_MESSAGE( "Device Lost on Present: Reason code 0x%08X\n", ( hr == DXGI_ERROR_DEVICE_REMOVED ) ? m_d3dDevice->GetDeviceRemovedReason() : hr );
         HandleDeviceLost();
     }
     else
     {
-        ASSERT_HANDLE(hr);
+        ASSERT_HANDLE( hr );
 
-        if (!m_dxgiFactory->IsCurrent())
+        if ( !m_dxgiFactory->IsCurrent() )
         {
             // Output information is cached on the DXGI Factory. If it is stale we need to create a new factory.
             CreateFactory();
@@ -548,94 +548,94 @@ void DeviceResources::Present()
 void DeviceResources::CreateFactory()
 {
 	HRESULT hr = 0;
-#if defined(_DEBUG) && (_WIN32_WINNT >= 0x0603 /*_WIN32_WINNT_WINBLUE*/)
+#if defined( _DEBUG ) && ( _WIN32_WINNT >= 0x0603 /*_WIN32_WINNT_WINBLUE*/ )
     bool debugDXGI = false;
     {
         ComPtr<IDXGIInfoQueue> dxgiInfoQueue;
-        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgiInfoQueue.GetAddressOf()))))
+        if ( SUCCEEDED( DXGIGetDebugInterface1( 0, IID_PPV_ARGS( dxgiInfoQueue.GetAddressOf() ) ) ) )
         {
             debugDXGI = true;
 
-            hr = (CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf())));
+            hr = ( CreateDXGIFactory2( DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS( m_dxgiFactory.ReleaseAndGetAddressOf() ) ) );
 			ASSERT( SUCCEEDED( hr ), "Can't create GXGI factory.\n" );
 
-            dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
-            dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
+            dxgiInfoQueue->SetBreakOnSeverity( DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true );
+            dxgiInfoQueue->SetBreakOnSeverity( DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true );
 
             DXGI_INFO_QUEUE_MESSAGE_ID hide[] =
             {
                 80 /* IDXGISwapChain::GetContainingOutput: The swapchain's adapter does not control the output on which the swapchain's window resides. */,
             };
             DXGI_INFO_QUEUE_FILTER filter = {};
-            filter.DenyList.NumIDs = _countof(hide);
+            filter.DenyList.NumIDs = _countof( hide );
             filter.DenyList.pIDList = hide;
-            dxgiInfoQueue->AddStorageFilterEntries(DXGI_DEBUG_DXGI, &filter);
+            dxgiInfoQueue->AddStorageFilterEntries( DXGI_DEBUG_DXGI, &filter );
         }
     }
 
-    if (!debugDXGI)
+    if ( !debugDXGI )
 #endif
 
-    hr = CreateDXGIFactory1(IID_PPV_ARGS(m_dxgiFactory.ReleaseAndGetAddressOf()));
+    hr = CreateDXGIFactory1( IID_PPV_ARGS( m_dxgiFactory.ReleaseAndGetAddressOf() ) );
 	ASSERT_HANDLE( hr );
 }
 
 // This method acquires the first available hardware adapter.
 // If no such adapter can be found, *ppAdapter will be set to nullptr.
-void DeviceResources::GetHardwareAdapter(IDXGIAdapter1** ppAdapter)
+void DeviceResources::GetHardwareAdapter( IDXGIAdapter1** ppAdapter )
 {
 	HRESULT hr = 0;
     *ppAdapter = nullptr;
 
     ComPtr<IDXGIAdapter1> adapter;
 
-#if defined(__dxgi1_6_h__) && defined(NTDDI_WIN10_RS4)
+#if defined( __dxgi1_6_h__ ) && defined( NTDDI_WIN10_RS4 )
     ComPtr<IDXGIFactory6> factory6;
-    hr = m_dxgiFactory.As(&factory6);
-    if (SUCCEEDED(hr))
+    hr = m_dxgiFactory.As( &factory6 );
+    if ( SUCCEEDED( hr ) )
     {
-        for (UINT adapterIndex = 0;
-            SUCCEEDED(factory6->EnumAdapterByGpuPreference(
+        for ( UINT adapterIndex = 0;
+            SUCCEEDED( factory6->EnumAdapterByGpuPreference( 
                 adapterIndex,
                 DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
-                IID_PPV_ARGS(adapter.ReleaseAndGetAddressOf())));
-            adapterIndex++)
+                IID_PPV_ARGS( adapter.ReleaseAndGetAddressOf() ) ) );
+            adapterIndex++ )
         {
             DXGI_ADAPTER_DESC1 desc;
-            hr = adapter->GetDesc1(&desc);
+            hr = adapter->GetDesc1( &desc );
 			ASSERT( SUCCEEDED( hr ), "Can't get adapter desc.\n" );
 
-            if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+            if ( desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE )
             {
                 // Don't select the Basic Render Driver adapter.
                 continue;
             }
 
-			DEBUG_MESSAGE("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, desc.Description);
+			DEBUG_MESSAGE( "Direct3D Adapter ( %u ): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, desc.Description );
 
             break;
         }
     }
 #endif
-    if (!adapter)
+    if ( !adapter )
     {
-        for (UINT adapterIndex = 0;
-            SUCCEEDED(m_dxgiFactory->EnumAdapters1(
+        for ( UINT adapterIndex = 0;
+            SUCCEEDED( m_dxgiFactory->EnumAdapters1( 
                 adapterIndex,
-                adapter.ReleaseAndGetAddressOf()));
-            adapterIndex++)
+                adapter.ReleaseAndGetAddressOf() ) );
+            adapterIndex++ )
         {
             DXGI_ADAPTER_DESC1 desc;
-            hr = adapter->GetDesc1(&desc);
+            hr = adapter->GetDesc1( &desc );
 			ASSERT( SUCCEEDED( hr ), "Can't get adapter desc.\n" );
 
-            if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+            if ( desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE )
             {
                 // Don't select the Basic Render Driver adapter.
                 continue;
             }
 
-			DEBUG_MESSAGE("Direct3D Adapter (%u): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, desc.Description);
+			DEBUG_MESSAGE( "Direct3D Adapter ( %u ): VID:%04X, PID:%04X - %ls\n", adapterIndex, desc.VendorId, desc.DeviceId, desc.Description );
 
             break;
         }
@@ -652,20 +652,20 @@ void DeviceResources::UpdateColorSpace()
 
     bool isDisplayHDR10 = false;
 
-#if defined(NTDDI_WIN10_RS2)
-    if (m_swapChain)
+#if defined( NTDDI_WIN10_RS2 )
+    if ( m_swapChain )
     {
         ComPtr<IDXGIOutput> output;
-        if (SUCCEEDED(m_swapChain->GetContainingOutput(output.GetAddressOf())))
+        if ( SUCCEEDED( m_swapChain->GetContainingOutput( output.GetAddressOf() ) ) )
         {
             ComPtr<IDXGIOutput6> output6;
-            if (SUCCEEDED(output.As(&output6)))
+            if ( SUCCEEDED( output.As( &output6 ) ) )
             {
                 DXGI_OUTPUT_DESC1 desc;
-                hr = output6->GetDesc1(&desc);
+                hr = output6->GetDesc1( &desc );
 				ASSERT( SUCCEEDED( hr ), "Can't get adapter desc.\n" );
 
-                if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
+                if ( desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
                 {
                     // Display output is HDR10.
                     isDisplayHDR10 = true;
@@ -675,9 +675,9 @@ void DeviceResources::UpdateColorSpace()
     }
 #endif
 
-    if ((m_options & c_EnableHDR) && isDisplayHDR10)
+    if ( ( m_options & c_EnableHDR ) && isDisplayHDR10 )
     {
-        switch (m_backBufferFormat)
+        switch ( m_backBufferFormat )
         {
         case DXGI_FORMAT_R10G10B10A2_UNORM:
             // The application creates the HDR10 signal.
@@ -697,13 +697,13 @@ void DeviceResources::UpdateColorSpace()
     m_colorSpace = colorSpace;
 
     ComPtr<IDXGISwapChain3> swapChain3;
-    if (SUCCEEDED(m_swapChain.As(&swapChain3)))
+    if ( SUCCEEDED( m_swapChain.As( &swapChain3 ) ) )
     {
         UINT colorSpaceSupport = 0;
-        if (SUCCEEDED(swapChain3->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport))
-            && (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+        if ( SUCCEEDED( swapChain3->CheckColorSpaceSupport( colorSpace, &colorSpaceSupport ) )
+            && ( colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT ) )
         {
-            hr = swapChain3->SetColorSpace1(colorSpace);
+            hr = swapChain3->SetColorSpace1( colorSpace );
 			ASSERT( SUCCEEDED( hr ), "Can't set color space.\n" );
         }
     }

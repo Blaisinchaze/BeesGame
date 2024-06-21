@@ -13,6 +13,7 @@
 #include "Utils\Maths.h"
 
 using namespace DirectX;
+using namespace utils;
 
 namespace scene
 {
@@ -124,69 +125,67 @@ void Scene::Initialise()
 
 
 #pragma endregion
-	// TODO: Replace this with some proper camera code
-	DX::View* const view = core->GetView();
-	view->SetViewPosition( XMVECTOR{ -5.0f, 10.0f, 5.0f, 0.0f } );
-	XMVECTOR viewDirection = XMVector3Normalize( XMVECTOR{ 5.0f, -10.0f, -5.0f, 0.0f } );
-	view->SetViewDirection( viewDirection );
 
 	XMVECTOR position;
 	XMFLOAT4 colour;
 
-	for (int i = -2; i < m_hiveCount - 2; i++)
+	//Loop through each hive creating and initialising them whilst setting the location and rotation
+	for ( int i = -2; i < m_hiveCount - 2; i++ )
 	{
-		if(i == 0){continue;}
-
 		Hive* tempHive = new Hive();
 		tempHive->Initialise();
 
-		const float angleStride = DirectX::XM_2PI / static_cast<float>(m_hiveCount);
-		const float startingAngleSin = DirectX::XMScalarSin((angleStride * i));
-		const float startingAngleCos = DirectX::XMScalarCos((angleStride * i));
+		//Set the hive in a circle around the outside of the flower bed
+		const float angleStride = XM_2PI / m_hiveCount;
+		const float startingAngleSin = XMScalarSin( angleStride * i );
+		const float startingAngleCos = XMScalarCos( angleStride * i );
+
+		position = XMVectorSet( startingAngleSin * ( m_flowerBedScale / 1.5f ), 
+			1.0f, startingAngleCos * ( m_flowerBedScale / 1.5f ), 0.0f );
+		tempHive->SetPosition( position );
 
 
-		position = XMVectorSet(startingAngleSin * (m_flowerBedScale / 1.5f), 
-			(1.0f), startingAngleCos * (m_flowerBedScale / 1.5f), (0.0f));
-		tempHive->SetPosition(position);
-
-		//Calculate the angle to rotate the camera to face 
+		//Calculate the angle to rotate the hive to face the centre of the world 
 		XMVECTOR directionVector = XMVECTOR{ 0.0f,1.0f,0.0f,0.0f } - position;
-		tempHive->SetOrientation(XMVector3Normalize(directionVector));
+		tempHive->SetOrientation( XMVector3Normalize( directionVector ) );
 
-		m_hiveList.push_back(tempHive);
+		m_hiveList.push_back( tempHive );
 	}
 
-	for (int x = 0; x < m_flowerBedScale; x++)
+	//Loop through each flower creating and initialising them whilst setting the location and rotation and applying small offsets
+	for ( int x = 0; x < m_flowerBedScale; x++ )
 	{
-		for (int y = 0; y < m_flowerBedScale; y++)
+		for ( int y = 0; y < m_flowerBedScale; y++ )
 		{
 			Flower* tempFlower = new Flower();
 			tempFlower->Initialise();
-			float offsetX = static_cast<float>(x);
-			float offsetY = static_cast<float>(y);
-			position = XMVectorSet((offsetX - m_flowerBedScale / 2) + utils::RandRange(1) / 2, utils::RandRange(1) + 0.2f, (offsetY - m_flowerBedScale / 2) + utils::RandRange(1) / 2, 0.0f);
-			tempFlower->SetPosition(position);
-			tempFlower->SetOrientation(XMVector3Normalize(XMVECTOR{ utils::RandRange(1),0.0f,utils::RandRange(1),utils::RandRange(1) }));
-			m_flowerList.push_back(tempFlower);
+			float offsetX = static_cast<float>( x );
+			float offsetY = static_cast<float>( y );
+			position = XMVectorSet( ( offsetX - m_flowerBedScale / 2 ) + RandRange( 1 ) / 2, 
+				RandRange( 1 ) + 0.2f, ( offsetY - m_flowerBedScale / 2 ) + RandRange( 1 ) / 2, 0.0f ) ;
+			tempFlower->SetPosition( position );
+			tempFlower->SetOrientation( XMVector3Normalize( 
+				XMVECTOR{ RandRange( 1 ), 0.0f, RandRange( 1 ), RandRange( 1 ) } ) );
+			m_flowerList.push_back( tempFlower );
 		}
 	}
 
-
+	//Initialises the flower bed while scaling it to fit all expected flowers.
 	m_ground->Initialise();
 
-	position = XMVectorSet(0.1f, 0.0f, 0.0f, 1.0f);
-	m_ground->SetPosition(position);
-	m_ground->SetScale(XMVECTORF32{ static_cast<float>(m_flowerBedScale) + 1.0f,
-		0.1f,  static_cast<float>( m_flowerBedScale) + 1.0f, 1.0f });
+	position = XMVectorSet( 0.1f , 0.0f, 0.0f, 1.0f );
+	m_ground->SetPosition( position );
+	m_ground->SetScale( XMVECTORF32{ static_cast<float>( m_flowerBedScale ) + 1.0f,
+		0.1f,  static_cast<float>( m_flowerBedScale ) + 1.0f, 1.0f } );
 	colour = { 0.6f, 0.361f, 0.267f, 1.0f };
-	m_ground->SetColour(colour);
+	m_ground->SetColour( colour );
 
 }
 
 void Scene::Shutdown()
 {
 	HiveListItor hiveItor = m_hiveList.begin();
-	while (hiveItor != m_hiveList.end())
+	while ( hiveItor != m_hiveList.end() )
 	{
 		Hive* hive = *hiveItor;
 		hive->Shutdown();
@@ -195,7 +194,7 @@ void Scene::Shutdown()
 	}
 
 	BeeListItor beeItor = m_beeList.begin();
-	while (beeItor != m_beeList.end())
+	while ( beeItor != m_beeList.end() )
 	{
 		Bee* bee = *beeItor;
 		bee->Shutdown();
@@ -203,7 +202,7 @@ void Scene::Shutdown()
 		++beeItor;
 	}
 	FlowerListItor flowerItor = m_flowerList.begin();
-	while (flowerItor != m_flowerList.end())
+	while ( flowerItor != m_flowerList.end() )
 	{
 		Flower* flower = *flowerItor;
 		flower->Shutdown();
@@ -232,9 +231,10 @@ void Scene::Shutdown()
 
 void Scene::Update()
 {
+	//Update functions called on each game object in the scene
 
 	HiveListItor hiveItor = m_hiveList.begin();
-	while (hiveItor != m_hiveList.end())
+	while ( hiveItor != m_hiveList.end() )
 	{
 		Hive* hive = *hiveItor;
 		hive->Update();
@@ -243,15 +243,27 @@ void Scene::Update()
 	}
 
 	BeeListItor beeItor = m_beeList.begin();
-	while (beeItor != m_beeList.end())
+	while ( beeItor != m_beeList.end() )
 	{
 		Bee* bee = *beeItor;
-		bee->Update();
+
+		if( bee->IsMarkedForKill() )
+		{
+			bee->Shutdown();
+			delete bee;
+			beeItor = m_beeList.erase( beeItor );
+			continue;
+		}
+		else
+		{
+			bee->Update();
+		}
 
 		++beeItor;
 	}
+
 	FlowerListItor flowerItor = m_flowerList.begin();
-	while (flowerItor != m_flowerList.end())
+	while ( flowerItor != m_flowerList.end() )
 	{
 		Flower* flower = *flowerItor;
 		flower->Update();
@@ -261,29 +273,28 @@ void Scene::Update()
 
 	m_ground->Update();
 
-
+	//Gets all the inputs from the input manager to be used in the camera controls
 	Core* const core = Core::Get();
 	DX::Input* input = core->GetInput();
 	const float leftRight = input->GetLeftRight();
 	const float upDown = input->GetUpDown();
-
-	DX::View* const view = core->GetView();
-	view->RotateCamera(leftRight, upDown);
-
 	const float wasdLeftRight = input->GetWASDLeftRight();
 	const float wasdUpDown = input->GetWASDUpDown();
-	view->MoveLookAtPoint(wasdLeftRight, wasdUpDown);
+	const float scrollWheelValue = input->GetScrollWheelValue();
 
+	//Applies all of the camera movement operations based on player input
+	DX::View* const view = core->GetView();
+	view->RotateCameraAroundPivot( leftRight, upDown );
+	view->MoveLookAtPoint( wasdLeftRight, wasdUpDown );
+	view->CameraZoom(scrollWheelValue);
+	view->LookAtFocusPoint();
 }
 
 void Scene::Render()
 {
-	//m_testObject1->Render();
-	//m_testObject2->Render();
-
 
 	HiveListItor hiveItor = m_hiveList.begin();
-	while (hiveItor != m_hiveList.end())
+	while ( hiveItor != m_hiveList.end() )
 	{
 		Hive* hive = *hiveItor;
 		hive->Render();
@@ -292,7 +303,7 @@ void Scene::Render()
 	}
 
 	BeeListItor beeItor = m_beeList.begin();
-	while (beeItor != m_beeList.end())
+	while ( beeItor != m_beeList.end() )
 	{
 		Bee* bee = *beeItor;
 		bee->Render();
@@ -301,7 +312,7 @@ void Scene::Render()
 	}
 
 	FlowerListItor flowerItor = m_flowerList.begin();
-	while (flowerItor != m_flowerList.end())
+	while ( flowerItor != m_flowerList.end() )
 	{
 		Flower* flower = *flowerItor;
 		flower->Render();
@@ -330,22 +341,24 @@ void Scene::ActivateShaders( const ShaderTypes shaderType )
 	deviceContext->PSSetShader( m_shaderData[ shaderType ].pixelShader, nullptr, 0 );
 }
 
-void Scene::SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position)
+//Void function called by the Hive for spawning and initialising bees whilst passing it's own information for the bee to use
+void Scene::SpawnBee( Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position )
 {
 	Bee* tempBee = new Bee();
 	tempBee->Initialise();
-	tempBee->SetPosition(position);
-	tempBee->SetScale(XMVECTORF32{ 0.08f, 0.05f, 0.1f, 1.0f });
-	tempBee->SetColour(colour);
-	tempBee->SetStartingHive(startingHive);
-	m_beeList.push_back(tempBee);
+	tempBee->SetPosition( position );
+	tempBee->SetScale( XMVECTORF32{ 0.08f, 0.05f, 0.1f, 1.0f } );
+	tempBee->SetColour( colour );
+	tempBee->SetStartingHive( startingHive );
+	m_beeList.push_back( tempBee );
 }
 
+//Returns a spawned Flower in the scene - used by the bees to assign a target for movement and nectar removal 
 Flower* Scene::ReturnRandomFlower() 
 {
-	int randomFlower = static_cast<int>( utils::RandRange(m_flowerBedScale * m_flowerBedScale));
+	int randomFlower = static_cast<int>( utils::RandRange( m_flowerBedScale * m_flowerBedScale ) );
 	FlowerListItor flowerItor = m_flowerList.begin();
-	for (int i = 0; i < randomFlower; i++)
+	for ( int i = 0; i < randomFlower; i++ )
 	{
 		++flowerItor;
 	}

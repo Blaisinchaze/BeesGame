@@ -32,7 +32,7 @@ public:
 	void				Render();
 
 	void				ActivateShaders( const ShaderTypes shaderType );
-	void				SpawnBee(Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position);
+	void				SpawnBee( Hive* startingHive, DirectX::XMFLOAT4 colour, DirectX::XMVECTOR position );
 	Flower*				ReturnRandomFlower();
 private:
 	struct ShaderData
@@ -43,9 +43,9 @@ private:
 		{
 		}
 
-		ID3D11InputLayout* inputLayout;
-		ID3D11VertexShader* vertexShader;
-		ID3D11PixelShader* pixelShader;
+		ID3D11InputLayout*				inputLayout;
+		ID3D11VertexShader*				vertexShader;
+		ID3D11PixelShader*				pixelShader;
 	};
 	
 	ShaderData m_shaderData[ ShaderTypes::NumShaderTypes ];
@@ -54,9 +54,9 @@ private:
 	containers::List<Bee*>				m_beeList;
 	containers::List<Flower*>			m_flowerList;	
 
-	typedef containers::List< Bee* >::iterator BeeListItor;	
-	typedef containers::List< Hive* >::iterator HiveListItor;
-	typedef containers::List< Flower* >::iterator FlowerListItor;
+	typedef containers::List< Bee* >::iterator		BeeListItor;	
+	typedef containers::List< Hive* >::iterator		HiveListItor;
+	typedef containers::List< Flower* >::iterator	FlowerListItor;
 
 	Ground*								m_ground;
 	Flower*								m_flower;

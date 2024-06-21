@@ -48,7 +48,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		wcEx.hInstance = hInstance;
 		wcEx.hIcon = LoadIconW( hInstance, L"IDI_ICON" );
 		wcEx.hCursor = LoadCursorW( nullptr, IDC_ARROW );
-		wcEx.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1 );
+		wcEx.hbrBackground = ( HBRUSH )( COLOR_WINDOW + 1 );
 		wcEx.lpszMenuName = nullptr;
 		wcEx.lpszClassName = L"DirectXTKSimpleSampleWindowClass";
 		wcEx.hIconSm = LoadIconW( wcEx.hInstance, L"IDI_ICON" );
@@ -125,7 +125,7 @@ int WINAPI wWinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	memory::Heap::Destroy();
 
-	return (int)msg.wParam;
+	return ( int )msg.wParam;
 }
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
@@ -135,7 +135,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 
 	Core* const core = Core::Get();
 	DX::Input* const input = core->GetInput();
-
+	
 	switch( message )
 	{
 		case WM_CREATE:
@@ -149,12 +149,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 			PostQuitMessage( 0 );
 			break;
 
+		case WM_MOUSEWHEEL: 
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 			input->HandleSystemMessage( message, wParam );
 			break;
 
 		default:
+
 			break;
 	}
 

@@ -31,8 +31,24 @@ public:
 	void							Initialise();
 	void							Refresh();
 	void							Shutdown();
-	void							RotateCamera(float directionOfHorizontalMovement, float directionOfVerticalMovement);
-	void							MoveLookAtPoint(float directionOfHorizontalMovement, float directionOfVerticalMovement);
+
+	//Void that rotates the camera to face the look at point. This should be called after all other transformations on the camera.
+	void							LookAtFocusPoint();
+
+	//Void that calculates the offset for a camera when rotating around the look at point.
+	//"directionOfHorizontalMovement" is movement around the yaw-axis
+	//"directionOfVerticalMovement" is movement around the pitch-axis *STILL UNDER DEVELOPMENT*
+	void							RotateCameraAroundPivot( float directionOfHorizontalMovement, float directionOfVerticalMovement );
+	
+	//Void that calculates where the look at point should be in the world - 
+	//"directionOfHorizontalMovement" is movement along the x-axis relative to the camera.
+	//"directionOfVerticalMovement" is movement along the z-axis relative to the camera.
+	void							MoveLookAtPoint( float directionOfHorizontalMovement, float directionOfVerticalMovement );
+
+	//Void for zooming the camera towards or away from the look at point
+	//"ZoomValue" is between -1.0f and 1.0f
+	void							CameraZoom( float ZoomValue );
+
 
 	inline void						SetViewPosition( const DirectX::XMVECTOR viewPosition )
 	{
@@ -62,11 +78,13 @@ private:
 	DirectX::XMVECTOR				m_dirLightDir;
 	DirectX::XMFLOAT4				m_dirLightCol;
 
+	DirectX::XMVECTOR				m_cameraOffset;
 	DirectX::XMVECTOR				m_lookAtPoint; 
-	float							m_distanceFromCentre = 10.0f;
-	float							m_degreesAroundCentre = 45.0f;
-	float							m_cameraHorizontalMoveSpeed = 0.6f;
-	float							m_cameraVerticalMoveSpeed = 10.0f;
+	float							m_distanceFromCentre;
+	float							m_degreesAroundCentre;
+	float							m_cameraHorizontalMoveSpeed;
+	float							m_cameraVerticalMoveSpeed;
+	float							m_cameraZoomSpeed;
 };
 
 } // namespace DX

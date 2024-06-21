@@ -5,6 +5,9 @@
 #include "..\EntityHelper.h"
 #include "Utils\Maths.h"
 
+using namespace utils;
+using namespace DirectX;
+
 namespace scene
 {
 
@@ -31,25 +34,30 @@ namespace scene
 
 		ID3D11Device* const device = deviceResources->GetD3DDevice();
 
-		m_insideColour = DirectX::XMFLOAT4{ utils::RandRange(10) / 10, utils::RandRange(10) / 10, utils::RandRange(10) / 10, 1.0f };
-		m_outsideColour = DirectX::XMFLOAT4 {1.0f,1.0f,1.0f,1.0f};
+		//Randomise the color of the petals 
+		m_insideColour = XMFLOAT4{ RandRange( 1 ), RandRange( 1 ), RandRange( 1 ), 1.0f };
+		m_outsideColour = XMFLOAT4{ RandRange( 1 ), RandRange(  1 ), RandRange(  1 ), 1.0f };
 
 		UINT NumPetalVertices = NumPetals * NumVerticesPerPetal;
 		VertexLit* const petalVertices = new VertexLit[NumPetalVertices];
-		ASSERT(petalVertices != nullptr, "Couldn't create petal vertices.\n");
+		ASSERT( petalVertices != nullptr, "Couldn't create petal vertices.\n" );
 
-		const float angleStride = DirectX::XM_2PI / static_cast<float>(NumPetals);
+		const float angleStride = DirectX::XM_2PI / static_cast<float>( NumPetals );
 		const float petalStride = angleStride * 0.85;
 		const float gapStride = angleStride - petalStride;
 
 		VertexLit* vertex = petalVertices;
 		float startingAngle = 0.0f;
-		for (UINT petalIndex = 0; petalIndex < NumPetals; ++petalIndex)
+		for ( UINT petalIndex = 0; petalIndex < NumPetals; ++petalIndex )
 		{
-			const float startingAngleSin = DirectX::XMScalarSin((startingAngle + (gapStride * petalIndex)) + (petalStride * petalIndex));
-			const float startingAngleCos = DirectX::XMScalarCos((startingAngle + (gapStride * petalIndex)) + (petalStride * petalIndex));
-			const float startingAnglePlusStrideSin = DirectX::XMScalarSin((startingAngle + (gapStride * petalIndex)) + (petalStride * (petalIndex + 1)));
-			const float startingAnglePlusStrideCos = DirectX::XMScalarCos((startingAngle + (gapStride * petalIndex)) + (petalStride * (petalIndex + 1)));
+			const float startingAngleSin = XMScalarSin( ( startingAngle + 
+				( gapStride * petalIndex ) ) + ( petalStride * petalIndex ) );
+			const float startingAngleCos = XMScalarCos( ( startingAngle + 
+				( gapStride * petalIndex ) ) + ( petalStride * petalIndex ) );
+			const float startingAnglePlusStrideSin = XMScalarSin( ( startingAngle + 
+				( gapStride * petalIndex ) ) + ( petalStride * ( petalIndex + 1 ) ) );
+			const float startingAnglePlusStrideCos = XMScalarCos( ( startingAngle + 
+				( gapStride * petalIndex ) ) + ( petalStride * ( petalIndex + 1 ) ) );
 			// The centre
 			vertex->position.x = 0.0f;
 			vertex->position.y = 0.0f;
@@ -60,18 +68,18 @@ namespace scene
 			vertex->normal.z = 0.0f;
 			vertex->color = m_insideColour;
 			vertex++;
-			vertex->position.x = startingAngleSin * BaseRadius;
+			vertex->position.x = startingAngleSin * (BaseRadius - ((petalIndex % 2) * 0.2f));
 			vertex->position.y = 0.2f;
-			vertex->position.z = startingAngleCos * BaseRadius;
+			vertex->position.z = startingAngleCos * (BaseRadius - ((petalIndex % 2) * 0.2f));
 			vertex->position.w = 1.0f;
 			vertex->normal.x = 0.0f;
 			vertex->normal.y = 1.0f;
 			vertex->normal.z = 0.0f;
 			vertex->color = m_outsideColour;
 			vertex++;
-			vertex->position.x = startingAnglePlusStrideSin * BaseRadius;
+			vertex->position.x = startingAnglePlusStrideSin * (BaseRadius - ((petalIndex % 2) * 0.2f));
 			vertex->position.y = 0.2f;
-			vertex->position.z = startingAnglePlusStrideCos * BaseRadius;
+			vertex->position.z = startingAnglePlusStrideCos * (BaseRadius - ((petalIndex % 2) * 0.2f));
 			vertex->position.w = 1.0f;
 			vertex->normal.x = 0.0f;
 			vertex->normal.y = 1.0f;
@@ -84,17 +92,17 @@ namespace scene
 		initialData.pSysMem = petalVertices;
 
 		D3D11_BUFFER_DESC bufferDesc = {};
-		bufferDesc.ByteWidth = NumPetalVertices * sizeof(VertexLit);
+		bufferDesc.ByteWidth = NumPetalVertices * sizeof( VertexLit );
 		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
 		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		bufferDesc.StructureByteStride = sizeof(VertexLit);
+		bufferDesc.StructureByteStride = sizeof( VertexLit );
 
 		// Note the vertex buffer is released in the base class
-		hr = device->CreateBuffer(&bufferDesc, &initialData,
-			&m_vertexBuffer);
-		ASSERT_HANDLE(hr);
+		hr = device->CreateBuffer( &bufferDesc, &initialData,
+			&m_vertexBuffer );
+		ASSERT_HANDLE( hr );
 
-		SetScale(0.0f);
+		SetScale( 0.0f );
 
 
 		delete petalVertices;
@@ -110,12 +118,13 @@ namespace scene
 	void Flower::Update()
 	{
 		Entity::Update();
-		if (m_maxNectarStored > m_nectarStored) 
+		if ( m_maxNectarStored > m_nectarStored ) 
 		{
 			m_nectarStored += m_nectarGainRate * utils::Timers::GetFrameTime();
 		}
 
-		SetScale(DirectX::XMVECTORF32{ m_nectarStored/100, m_nectarStored/100, m_nectarStored/100, 1.0f });
+		float hiveScale = m_nectarStored / 100;
+		SetScale( XMVECTORF32{ hiveScale, hiveScale, hiveScale, 1.0f } );
 
 	}
 
@@ -130,14 +139,14 @@ namespace scene
 		ID3D11DeviceContext* const context = deviceResources->GetD3DDeviceContext();
 
 		// Draw the triangles
-		UINT strides = sizeof(VertexLit);
+		UINT strides = sizeof( VertexLit );
 		UINT offsets = 0;
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		context->IASetVertexBuffers(0, 1, &m_vertexBuffer, &strides, &offsets);
-		context->Draw(NumVertices, 0);
+		context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+		context->IASetVertexBuffers( 0, 1, &m_vertexBuffer, &strides, &offsets );
+		context->Draw( NumVertices, 0 );
 	}
 
-	void Flower::CollectionChange(bool collectionChange)
+	void Flower::CollectionChange( bool collectionChange )
 	{
 		m_beingCollected = collectionChange;
 	}
@@ -147,11 +156,11 @@ namespace scene
 		return m_beingCollected;
 	}
 
-	bool Flower::CollectNectar(float rate)
+	bool Flower::CollectNectar( float rate )
 	{
 		m_nectarStored -= rate;
 
-		return (m_nectarStored > 0.0f);
+		return ( m_nectarStored > 0.0f );
 	}
 
 } // namespace scene

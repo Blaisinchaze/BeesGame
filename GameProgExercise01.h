@@ -30,7 +30,7 @@
 
 //#include <wrl/client.h>
 
-#if defined(NTDDI_WIN10_RS2)
+#if defined( NTDDI_WIN10_RS2 )
 #include <dxgi1_6.h>
 #else
 #include <dxgi1_5.h>

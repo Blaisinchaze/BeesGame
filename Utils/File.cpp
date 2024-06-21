@@ -45,7 +45,7 @@ HANDLE GetFileData( const char* const filename, void** outData, DWORD* size )
 		fileInfo.m_size = GetFileSize( fileInfo.m_fileHandle, NULL );
 		g_totalSizeOfOpenFiles += fileInfo.m_size;
 		DWORD bytesRead = 0;
-		fileInfo.m_data = (void*)(new CHAR[ fileInfo.m_size ]);
+		fileInfo.m_data = ( void* )( new CHAR[ fileInfo.m_size ] );
 		ASSERT( fileInfo.m_data != nullptr, "unable to allocate memory of %u bytes for reading file data.\n", fileInfo.m_size );
 		bool result = ReadFile( fileInfo.m_fileHandle, fileInfo.m_data, fileInfo.m_size, &bytesRead, NULL );
 		ASSERT( result, "Unable to read from file %s.\n", filename );

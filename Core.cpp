@@ -14,7 +14,7 @@ Core::Core() noexcept( false ) :
 	m_scene( nullptr )
 {
 	// DirectX Tool Kit supports all feature levels
-	m_deviceResources = new DX::DeviceResources(
+	m_deviceResources = new DX::DeviceResources( 
 		DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 2,
 		D3D_FEATURE_LEVEL_11_1 );
 	m_deviceResources->RegisterDeviceNotify( this );

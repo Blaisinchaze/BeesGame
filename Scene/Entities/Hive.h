@@ -15,14 +15,15 @@ namespace scene
 
 		virtual void		Update();
 		virtual void		Render();
-		void				AddNectar(float nectarToStore);
+		//Void function that allows returning bees to deposit their sourced nectar - called from the bee itself 
+		void				AddNectar( float nectarToStore );
 
 	private:
 		static const UINT	NumVertices = 32;
-		float				m_spawnTimer;
-		int					m_beeCount;
-		float				m_collectedNectar;
-		DirectX::XMFLOAT4	m_colour;
+		float				m_spawnTimer;			//Rate at which bees are spawned
+		int					m_beeCount;				//The number of currently dispatched bees from this hive
+		float				m_collectedNectar;		//The amount of nectar deposited by bees - used by the "AddNectar" function.
+		DirectX::XMFLOAT4	m_colour;				//The colour of which the hive is spawned at
 		
 	};
 

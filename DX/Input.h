@@ -37,11 +37,18 @@ public:
 		return m_wasdleftRight;
 	}
 
+	inline float					GetScrollWheelValue() const
+	{
+		return m_scroll;
+	}
+
 private:
 	float							m_leftRight;
 	float							m_upDown;	
 	float							m_wasdleftRight;
 	float							m_wasdupDown;
+	int								m_scroll;
+	float							m_scrollTimer;
 };
 
 } // namespace DX

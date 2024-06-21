@@ -6,10 +6,12 @@ namespace DX
 {
 
 Input::Input():
-	m_leftRight( 0.0f),
+	m_leftRight( 0.0f ),
 	m_upDown( 0.0f ),
-	m_wasdleftRight(0.0f),
-	m_wasdupDown(0.0f)
+	m_wasdleftRight( 0.0f ),
+	m_wasdupDown( 0.0f ),
+	m_scroll(0),
+	m_scrollTimer(0.0f)
 {
 }
 
@@ -23,19 +25,32 @@ void Input::Initialise()
 
 void Input::Update()
 {
+	if (m_scrollTimer > 0.0f) 
+	{
+		m_scrollTimer -= utils::Timers::GetFrameTime();
+	}
+	else
+	{
+		m_scroll = 0;
+	}
+
 }
 
 void Input::Shutdown()
 {
 }
 
+
 BOOL Input::HandleSystemMessage( const UINT message, const WPARAM wParam )
 {
 	BOOL unhandled = FALSE;
-
 	// TODO: Improve this input detection
 	switch( message )
 	{
+		case WM_MOUSEWHEEL:
+			m_scroll = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+			m_scrollTimer = 0.05f;
+		break;
 		case WM_KEYDOWN:
 			switch( wParam )
 			{

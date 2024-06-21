@@ -24,18 +24,18 @@ namespace DX
         static const unsigned int c_AllowTearing    = 0x2;
         static const unsigned int c_EnableHDR       = 0x4;
 
-        DeviceResources(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
+        DeviceResources( DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
                         DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
                         UINT backBufferCount = 2,
                         D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_10_0,
-                        unsigned int flags = c_FlipPresent) noexcept;
+                        unsigned int flags = c_FlipPresent ) noexcept;
 
         BOOL CreateDeviceResources();
         BOOL CreateWindowSizeDependentResources();
-        void SetWindow(HWND window, int width, int height);
-        bool WindowSizeChanged(int width, int height);
+        void SetWindow( HWND window, int width, int height );
+        bool WindowSizeChanged( int width, int height );
         void HandleDeviceLost();
-        void RegisterDeviceNotify(IDeviceNotify* deviceNotify) { m_deviceNotify = deviceNotify; }
+        void RegisterDeviceNotify( IDeviceNotify* deviceNotify ) { m_deviceNotify = deviceNotify; }
         void Present();
 
         // Device Accessors.
@@ -62,9 +62,9 @@ namespace DX
         unsigned int            GetDeviceOptions() const                { return m_options; }
 
         // Performance events
-        void PIXBeginEvent(_In_z_ const wchar_t* name)
+        void PIXBeginEvent( _In_z_ const wchar_t* name )
         {
-            m_d3dAnnotation->BeginEvent(name);
+            m_d3dAnnotation->BeginEvent( name );
         }
 
         void PIXEndEvent()
@@ -72,14 +72,14 @@ namespace DX
             m_d3dAnnotation->EndEvent();
         }
 
-        void PIXSetMarker(_In_z_ const wchar_t* name)
+        void PIXSetMarker( _In_z_ const wchar_t* name )
         {
-            m_d3dAnnotation->SetMarker(name);
+            m_d3dAnnotation->SetMarker( name );
         }
 
     private:
         void CreateFactory();
-        void GetHardwareAdapter(IDXGIAdapter1** ppAdapter);
+        void GetHardwareAdapter( IDXGIAdapter1** ppAdapter );
         void UpdateColorSpace();
 
         // Direct3D objects.
@@ -114,7 +114,7 @@ namespace DX
         // HDR Support
         DXGI_COLOR_SPACE_TYPE                           m_colorSpace;
 
-        // DeviceResources options (see flags above)
+        // DeviceResources options ( see flags above )
         unsigned int                                    m_options;
 
         // The IDeviceNotify can be held directly as it owns the DeviceResources.
